@@ -2,6 +2,7 @@ import json
 import subprocess
 from flask import Flask, request
 from http import HTTPStatus
+from os.path import expanduser
 
 app = Flask(__name__)
 
@@ -23,3 +24,5 @@ def device_commission():
                HTTPStatus.BAD_REQUEST, jsoncontentheaders
     return json.dumps({'error': 'bad method or content type'}), \
            HTTPStatus.BAD_REQUEST, jsoncontentheaders
+if __name__ == "__main__":
+    app.run(ssl_context=(expanduser('~/.thingyjp/pki_user/issued/localhost.crt'), expanduser('~/.thingyjp/pki_user/private/localhost.key')))

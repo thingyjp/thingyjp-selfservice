@@ -1,3 +1,3 @@
 #!/bin/sh
 
-FLASK_APP=selfservice.py flask run
+python3 selfservice.py
