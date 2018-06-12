@@ -1,0 +1,3 @@
+[submodule "thingyjp-scripts"]
+	path = thingyjp-scripts
+	url = https://github.com/thingyjp/thingyjp-scripts.git
