@@ -12,7 +12,7 @@ jsoncontentheaders = {'ContentType': 'application/json'}
 @app.route('/device/commission', methods=['GET', 'POST'])
 def device_commission():
     if request.method == 'POST' and request.content_type == "application/json":
-        requestjson = request.get_json();
+        requestjson = request.get_json()
         if requestjson is not None:
             csrdata = requestjson.get('csr', None)
             if csrdata is not None:
@@ -24,5 +24,9 @@ def device_commission():
                HTTPStatus.BAD_REQUEST, jsoncontentheaders
     return json.dumps({'error': 'bad method or content type'}), \
            HTTPStatus.BAD_REQUEST, jsoncontentheaders
+
+
 if __name__ == "__main__":
-    app.run(ssl_context=(expanduser('~/.thingyjp/pki_user/issued/localhost.crt'), expanduser('~/.thingyjp/pki_user/private/localhost.key')))
+    app.run(ssl_context=(
+        expanduser('~/.thingyjp/pki_user/issued/localhost.crt'),
+        expanduser('~/.thingyjp/pki_user/private/localhost.key')))
