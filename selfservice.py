@@ -18,7 +18,10 @@ def device_commission():
             if csrdata is not None:
                 createcertprocess = subprocess.run(
                     ["./device_createcert.sh"], cwd="./thingyjp-scripts", input=csrdata, encoding='ascii',
-                    stdout=subprocess.PIPE)
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                if createcertprocess.returncode is not 0:
+                    return json.dumps({'error': createcertprocess.stderr}), \
+                           HTTPStatus.INTERNAL_SERVER_ERROR, jsoncontentheaders
                 return json.dumps({'bundle': createcertprocess.stdout}), HTTPStatus.OK, jsoncontentheaders
         return json.dumps({'error': 'required parameters missing or invalid'}), \
                HTTPStatus.BAD_REQUEST, jsoncontentheaders
