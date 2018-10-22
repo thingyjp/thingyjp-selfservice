@@ -29,6 +29,13 @@ def device_commission():
            HTTPStatus.BAD_REQUEST, jsoncontentheaders
 
 
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def catch_all(path):
+    return json.dumps({'error': 'no'}), \
+           HTTPStatus.NOT_FOUND, jsoncontentheaders
+
+
 if __name__ == "__main__":
     app.run(ssl_context=(
         expanduser('~/.thingyjp/pki_user/issued/localhost.crt'),
