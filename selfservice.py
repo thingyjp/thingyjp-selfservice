@@ -32,7 +32,7 @@ def device_commission():
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def catch_all(path):
-    return json.dumps({'error': 'no'}), \
+    return json.dumps({'error': 'no %s ' % path}), \
            HTTPStatus.NOT_FOUND, jsoncontentheaders
 
 
