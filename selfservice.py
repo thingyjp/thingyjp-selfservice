@@ -1,11 +1,18 @@
+#!/usr/bin/env python3
+
 import json
 from flask import Flask, request
 from http import HTTPStatus
 import environment
-from easyrsa import Pki, EasyRsaException
+import easyrsa
+from easyrsa import Pki, EasyRsaException, PkiDoesntExistException
+import common
+import os
+
+SELFSERVICEDIR = os.path.normpath('%s/selfservice/' % environment.homedir)
 
 try:
-    with open(environment.homedir + "/selfservice.conf") as f:
+    with open("%s/conf.json" % SELFSERVICEDIR) as f:
         conf = json.load(f)
         if conf.get('modes') is None:
             conf['modes'] = ["device"]
@@ -15,14 +22,26 @@ except FileNotFoundError as e:
 
 print("effective conf: %s" % (json.dumps(conf)))
 
-devicepki = Pki(environment.pkipath_device)
-devicepki.check()
+devicepki = None
+if common.MODE_DEVICE in conf['modes']:
+    devicepki = Pki(environment.pkipath_device)
+    try:
+        devicepki.check()
+    except PkiDoesntExistException:
+        print("Device pki doesn't exist, your configuration is either incorrect or you need to initialise it")
+        exit(1)
 
-serverpki = Pki(environment.pkipath_server)
-serverpki.check()
+serverpki = None
+if common.MODE_SERVER in conf['modes']:
+    serverpki = Pki(environment.pkipath_server)
+    try:
+        serverpki.check()
+    except PkiDoesntExistException:
+        print("Server pki doesn't exist, your configuration is either incorrect or you need to initialise it")
+        exit(1)
 
-pkimapping = {'device': devicepki, 'server': serverpki}
-certtypemapping = {'device': 'client', 'server': 'server'}
+pkimapping = {common.MODE_SERVER: serverpki, common.MODE_DEVICE: devicepki}
+certtypemapping = {common.MODE_SERVER: easyrsa.CERTTYPE_SERVER, common.MODE_DEVICE: easyrsa.CERTTYPE_CLIENT}
 
 app = Flask(__name__)
 
@@ -32,7 +51,7 @@ badmethodcontenttyperes = json.dumps({'error': 'bad method or content type'}), \
                           HTTPStatus.BAD_REQUEST, jsoncontentheaders
 
 
-@app.route('/<target>/commission', methods=['GET', 'POST'])
+@app.route('/<target>/%s' % common.ACTION_COMMISSION, methods=['GET', 'POST'])
 def commission(target):
     if request.method == 'POST' and request.content_type == "application/json":
         requestjson = request.get_json()
@@ -45,10 +64,15 @@ def commission(target):
                                                    requestjson.get('service'), certtypemapping.get(target))
                 except EasyRsaException as easyrsaexception:
                     return json.dumps(
-                        {'error': ""}), HTTPStatus.INTERNAL_SERVER_ERROR, jsoncontentheaders
+                        {'error': str(easyrsaexception)}), HTTPStatus.INTERNAL_SERVER_ERROR, jsoncontentheaders
                 return json.dumps({'bundle': cert}), HTTPStatus.OK, jsoncontentheaders
         return json.dumps(
             {'error': 'required parameters missing or invalid'}), HTTPStatus.BAD_REQUEST, jsoncontentheaders
+    return badmethodcontenttyperes
+
+
+@app.route('/<target>/%s' % common.ACTION_RENEW, methods=['GET', 'POST'])
+def renew(target):
     return badmethodcontenttyperes
 
 
@@ -60,7 +84,7 @@ def catch_all(path):
 
 
 if __name__ == "__main__":
-    cert = environment.homedir + '/pki_test/issued/localhost.crt'
-    key = environment.homedir + '/pki_test/private/localhost.key'
+    cert = '%s/localhost.crt' % SELFSERVICEDIR
+    key = '%s/localhost.key' % SELFSERVICEDIR
     print("cert %s and key %s will be used" % (cert, key))
     app.run(ssl_context=(cert, key))

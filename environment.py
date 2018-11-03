@@ -9,6 +9,10 @@ url = environ.get('THINGYJP_SELFSERVICEURL')
 if url is None:
     url = "http://selfservice.public.thingy.jp/wtf"
 
+rootcert = environ.get('THINGYJP_ROOTCERT')
+if rootcert is None:
+    rootcert = "%s/rootca.crt" % homedir
+
 pkipath_user = "%s/pki_user" % homedir
 pkipath_server = "%s/pki_server" % homedir
 pkipath_device = "%s/pki_device" % homedir
@@ -17,4 +21,4 @@ LOGFILE = "%s/log" % homedir
 
 easyrsa = environ.get('EASYRSA')
 if easyrsa is None:
-    easyrsa = './thingyjp-scripts/easy-rsa/easyrsa3/easyrsa'
+    easyrsa = './easy-rsa/easyrsa3/easyrsa'

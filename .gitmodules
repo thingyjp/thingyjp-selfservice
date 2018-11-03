@@ -1,3 +1,6 @@
 [submodule "thingyjp-scripts"]
 	path = thingyjp-scripts
 	url = https://github.com/thingyjp/thingyjp-scripts.git
+[submodule "easy-rsa"]
+	path = easy-rsa
+	url = https://github.com/OpenVPN/easy-rsa.git
